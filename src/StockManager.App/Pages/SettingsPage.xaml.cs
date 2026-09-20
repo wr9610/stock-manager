@@ -36,6 +36,38 @@ public partial class SettingsPage : UserControl
             $"数据库：{App.DbPath}\n" +
             $"文件大小：{info.Length / 1024.0 / 1024.0:N1} MB\n" +
             $"当前用户：{App.CurrentUser}（{App.CurrentRole}）";
+
+        // 激活码区
+        var machine = LicenseService.MachineCode ?? App.GetMachineCode();
+        LicenseService.MachineCode = machine;
+        MachineCodeText.Text = $"你的机器码：{machine}\n（复制发给作者，换取激活码）";
+        if (LicenseService.IsLicensed)
+        {
+            ActivationBox.IsEnabled = false;
+            ActivationStatus.Text = "✅ 已激活正式版";
+        }
+    }
+
+    // ========== 激活码 ==========
+    private void Activate_Click(object sender, RoutedEventArgs e)
+    {
+        var (ok, msg) = LicenseService.TryActivate(ActivationBox.Text.Trim(), LicenseService.MachineCode ?? "");
+        ActivationStatus.Text = msg;
+        ActivationStatus.Foreground = new System.Windows.Media.SolidColorBrush(
+            (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(ok ? "#16A34A" : "#DC2626"));
+        if (ok)
+        {
+            ActivationBox.IsEnabled = false;
+            MessageBox.Show(msg, "激活", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void CopyMachine_Click(object sender, RoutedEventArgs e)
+    {
+        var machine = LicenseService.MachineCode ?? "";
+        if (machine.Length == 0) return;
+        System.Windows.Clipboard.SetText(machine);
+        ActivationStatus.Text = "✔ 机器码已复制，粘贴发给作者";
     }
 
     // ========== 打印机设置 ==========

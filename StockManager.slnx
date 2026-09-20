@@ -9,4 +9,7 @@
     <Project Path="tests/StockManager.Core.Tests/StockManager.Core.Tests.csproj" />
     <Project Path="tests/StockManager.UiSmoke/StockManager.UiSmoke.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/StockManager.LicenseGen/StockManager.LicenseGen.csproj" />
+  </Folder>
 </Solution>

@@ -298,7 +298,7 @@ public class StockService
                 item.AmountCents = item.PurchasePriceCents.Amount(item.Qty);
                 p.TotalAmountCents += item.AmountCents;
 
-                // 读当前库存 + 当前成本
+                // 读当前库存 + 当前移动加权成本（P0-2：从 Product.CurrentCostCents 读，单一真相）
                 var (curStock, curCost) = GetStockAndCost(conn, tx, item.ProductId);
                 var newStock = curStock + item.BaseQty;
                 // 移动加权：新成本分 = (旧库存×旧成本 + 本次进价×本次数量) / 新库存
@@ -329,8 +329,8 @@ public class StockService
                     cmd.ExecuteNonQuery();
                 }
 
-                // 更新库存 + 成本（成本存在 SaleItem 用，Product 表不需要存成本列，但为查当前成本方便，从最近进货算；这里用临时查询）
-                UpdateStock(conn, tx, item.ProductId, newStock);
+                // 更新库存 + 持久化移动加权成本（P0-2：唯一真相，销售/退货都读它）
+                UpdateStockAndCost(conn, tx, item.ProductId, newStock, newCost);
             }
 
             // 回写单头金额
@@ -353,37 +353,29 @@ public class StockService
         }
     }
 
-    private void UpdateStock(SqliteConnection conn, SqliteTransaction tx, string productId, decimal stock)
+    private void UpdateStockAndCost(SqliteConnection conn, SqliteTransaction tx, string productId, decimal stock, long costCents)
     {
         using var cmd = conn.CreateCommand();
         cmd.Transaction = tx;
-        cmd.CommandText = "UPDATE Product SET CurrentStock=@s WHERE ProductId=@id";
+        cmd.CommandText = "UPDATE Product SET CurrentStock=@s, CurrentCostCents=@c WHERE ProductId=@id";
         cmd.Parameters.AddWithValue("@s", stock);
+        cmd.Parameters.AddWithValue("@c", costCents);
         cmd.Parameters.AddWithValue("@id", productId);
         cmd.ExecuteNonQuery();
     }
 
-    /// <summary>读当前库存 + 最近进货成本（成本用最近一次进价近似，精确移动加权在销售时从 PurchaseItem 累计）</summary>
+    /// <summary>读当前库存 + 当前移动加权成本（P0-2：成本唯一真相存 Product.CurrentCostCents）</summary>
     private (decimal stock, long cost) GetStockAndCost(SqliteConnection conn, SqliteTransaction tx, string productId)
     {
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.Transaction = tx;
-            cmd.CommandText = "SELECT CurrentStock FROM Product WHERE ProductId=@id";
-            cmd.Parameters.AddWithValue("@id", productId);
-            var stock = Convert.ToDecimal(cmd.ExecuteScalar() ?? 0);
-
-            // 最近一次进价作为当前成本（销售时用移动加权精确计算）
-            long cost = 0;
-            cmd.CommandText = @"
-                SELECT PurchasePriceCents FROM PurchaseItem pi
-                JOIN Purchase p ON pi.PurchaseId=p.PurchaseId
-                WHERE pi.ProductId=@id AND p.Status='正常'
-                ORDER BY p.CreateDate DESC LIMIT 1";
-            using var rd = cmd.ExecuteReader();
-            if (rd.Read()) cost = Convert.ToInt64(rd[0]);
-            return (stock, cost);
-        }
+        using var cmd = conn.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = "SELECT CurrentStock, CurrentCostCents FROM Product WHERE ProductId=@id";
+        cmd.Parameters.AddWithValue("@id", productId);
+        using var rd = cmd.ExecuteReader();
+        if (!rd.Read()) return (0, 0);
+        var stock = Convert.ToDecimal(rd["CurrentStock"] ?? 0);
+        var cost = Convert.ToInt64(rd["CurrentCostCents"] ?? 0);
+        return (stock, cost);
     }
 
     /// <summary>查询当前库存</summary>
@@ -542,24 +534,19 @@ public class StockService
         }
     }
 
-    /// <summary>当前移动加权成本（分）：从所有正常进货明细累计计算</summary>
+    /// <summary>
+    /// 当前移动加权成本（分）：直接读 Product.CurrentCostCents（P0-2 修复）。
+    /// 该列由 DoPurchase 每次进货按移动加权写回，是成本唯一真相；
+    /// 旧实现从全部 PurchaseItem 累计（含已售数量），会系统性低估成本、利润虚高。
+    /// </summary>
     private long GetCurrentCostInTx(SqliteConnection conn, SqliteTransaction? tx, string productId)
     {
         using var cmd = conn.CreateCommand();
         cmd.Transaction = tx;
-        cmd.CommandText = @"
-            SELECT COALESCE(SUM(pi.BaseQty),0) AS total_qty,
-                   COALESCE(SUM(pi.BaseQty * pi.PurchasePriceCents),0) AS total_cost
-            FROM PurchaseItem pi
-            JOIN Purchase p ON pi.PurchaseId=p.PurchaseId
-            WHERE pi.ProductId=@id AND p.Status='正常'";
+        cmd.CommandText = "SELECT CurrentCostCents FROM Product WHERE ProductId=@id";
         cmd.Parameters.AddWithValue("@id", productId);
-        using var rd = cmd.ExecuteReader();
-        if (!rd.Read()) return 0;
-        var totalQty = Convert.ToDecimal(rd["total_qty"] ?? 0);
-        var totalCost = Convert.ToDecimal(rd["total_cost"] ?? 0);
-        if (totalQty <= 0) return 0;
-        return (long)Math.Round(totalCost / totalQty, 0, MidpointRounding.AwayFromZero);
+        var v = cmd.ExecuteScalar();
+        return v == null || v == DBNull.Value ? 0 : Convert.ToInt64(v);
     }
 
     // ========== 退货（B1 按行部分退货 / B2 引用原行成本）==========

@@ -207,7 +207,63 @@ catch (Exception ex)
 }
 
 // ========== 试用授权（C1）==========
-Console.WriteLine("\n=== 11. 试用授权 ===");
+// ========== P0-2 移动加权成本回归（审查者 55 元例子）==========
+Console.WriteLine("\n=== 11. 移动加权成本（穿插销售）===");
+try
+{
+    // 场景：进100件@10元 → 卖90件 → 进10件@100元
+    // 正确移动加权 = (10×10 + 10×100)/20 = 55元/件（旧实现把已售90也算进 → 18元/件）
+    var pCost = new Product
+    {
+        Barcode = "8000000000001",
+        ProductName = "成本测试",
+        BaseUnit = "件",
+        PurchasePriceCents = 1000,
+        SalePriceCents = 2000,
+        IsActive = true,
+    };
+    svc.SaveProduct(pCost);
+    pCost = svc.FindByBarcode("8000000000001")!;
+
+    // 第一次进 100 件 @10元
+    var pc1 = new Purchase { Operator = "t" };
+    pc1.Items.Add(new PurchaseItem { ProductId = pCost.ProductId, ProductName = pCost.ProductName, Barcode = pCost.Barcode, PurchasePriceCents = 1000, Qty = 100, BaseQty = 100 });
+    svc.DoPurchase(pc1);
+
+    // 卖 90 件 @20元
+    var s1 = new Sale { Operator = "t" };
+    s1.Items.Add(new SaleItem { ProductId = pCost.ProductId, ProductName = pCost.ProductName, Barcode = pCost.Barcode, SalePriceCents = 2000, Qty = 90, BaseQty = 90 });
+    var (sok, serr, _) = svc.DoSale(s1);
+    Console.WriteLine($"  卖90件成功 {Mark(sok)}");
+    if (!sok) Console.WriteLine($"    error: {serr}");
+
+    // 第二次进 10 件 @100元
+    var pc2 = new Purchase { Operator = "t" };
+    pc2.Items.Add(new PurchaseItem { ProductId = pCost.ProductId, ProductName = pCost.ProductName, Barcode = pCost.Barcode, PurchasePriceCents = 10000, Qty = 10, BaseQty = 10 });
+    svc.DoPurchase(pc2);
+
+    var nowCost = svc.GetCurrentCost(pCost.ProductId);
+    Console.WriteLine($"  当前成本={nowCost}分 期望5500分 {Mark(nowCost == 5500)}");
+    if (nowCost != 5500) Console.WriteLine($"    旧实现会给 18元/件=1818分，利润虚高");
+
+    // 再卖 5 件，成本应取 55 元/件
+    var s2 = new Sale { Operator = "t" };
+    s2.Items.Add(new SaleItem { ProductId = pCost.ProductId, ProductName = pCost.ProductName, Barcode = pCost.Barcode, SalePriceCents = 2000, Qty = 5, BaseQty = 5 });
+    var (s2ok, _, saleId2) = svc.DoSale(s2);
+    Console.WriteLine($"  再卖5件 {Mark(s2ok)}");
+    if (s2ok)
+    {
+        var full = svc.GetSale(saleId2!);
+        var itemCost = full!.Items[0].CostPriceCents;
+        Console.WriteLine($"  本次销售行成本={itemCost}分 期望5500分 {Mark(itemCost == 5500)}");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"  ✗ 成本回归异常：{ex.Message}");
+}
+
+Console.WriteLine("\n=== 12. 试用授权 ===");
 try
 {
     // 全新库 → 首次启动，剩余 15 天
@@ -284,6 +340,113 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"  ✗ Excel 导入异常：{ex.Message}");
+}
+
+// ========== 老库 v1 → v2 升级路径 ==========
+Console.WriteLine("\n=== 13. 老库升级 ===");
+try
+{
+    // 手工造一个 v1 库：用真实 v1 schema（CreateAll 去掉 CurrentCostCents 行），DBVersion 记 v1
+    var tmp2 = Path.Combine(Path.GetTempPath(), $"stock_upgrade_{Guid.NewGuid():N}.db");
+    var v1Schema = DatabaseSchema.CreateAll.Replace("  CurrentCostCents   INTEGER DEFAULT 0,   -- 移动加权成本（v2 起持久化，销售成本唯一真相）\n", "");
+    using (var raw = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={tmp2}"))
+    {
+        raw.Open();
+        using var cmd = raw.CreateCommand();
+        cmd.CommandText = v1Schema + @"
+            INSERT INTO Product (ProductId, ProductName, Barcode, CurrentStock) VALUES ('PDT1','旧商品','111',5);
+            INSERT INTO DBVersion (VersionId, VersionNo, UpgradeSql) VALUES ('VER000000001', 1, '初始建库');";
+        cmd.ExecuteNonQuery();
+    }
+
+    var upDb = new DatabaseService(tmp2);
+    upDb.Initialize();
+
+    // 升级后应存在 CurrentCostCents 列 + 版本号 = 2
+    using (var c2 = upDb.Open())
+    {
+        bool hasCol;
+        using (var cmd2 = c2.CreateCommand())
+        {
+            cmd2.CommandText = "PRAGMA table_info(Product)";
+            using var rd2 = cmd2.ExecuteReader();
+            hasCol = false;
+            while (rd2.Read()) if (rd2[1].ToString() == "CurrentCostCents") hasCol = true;
+        }
+        Console.WriteLine($"  升级后含 CurrentCostCents 列 {Mark(hasCol)}");
+
+        int v;
+        using (var cmd2 = c2.CreateCommand())
+        {
+            cmd2.CommandText = "SELECT MAX(VersionNo) FROM DBVersion";
+            v = Convert.ToInt32(cmd2.ExecuteScalar());
+        }
+        Console.WriteLine($"  版本号升至 {v} {Mark(v == 2)}");
+
+        using (var cmd2 = c2.CreateCommand())
+        {
+            cmd2.CommandText = "SELECT CurrentCostCents FROM Product WHERE ProductId='PDT1'";
+            var oldCost = Convert.ToInt64(cmd2.ExecuteScalar() ?? 0);
+            Console.WriteLine($"  旧数据成本默认 0 {Mark(oldCost == 0)}");
+        }
+    }
+    GC.Collect(); GC.WaitForPendingFinalizers();   // 释放 Open() 遗留连接句柄
+    foreach (var f in new[] { tmp2, tmp2 + "-wal", tmp2 + "-shm" })
+        if (File.Exists(f)) { try { File.Delete(f); } catch { } }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"  ✗ 升级测试异常：{ex.Message}");
+}
+
+// ========== 激活码（P0-1）==========
+Console.WriteLine("\n=== 14. 激活码 ===");
+try
+{
+    var mc = ActivationService.MachineCode("test-machine-guid-123");
+    Console.WriteLine($"  机器码生成 {Mark(mc.Length >= 10)} ({mc})");
+    var code = ActivationService.GenerateActivationCode(mc);
+    Console.WriteLine($"  激活码格式(4组5位) {Mark(System.Text.RegularExpressions.Regex.IsMatch(code, @"^[A-Z2-7]{5}-[A-Z2-7]{5}-[A-Z2-7]{5}-[A-Z2-7]{5}$"))}");
+    Console.WriteLine($"  验签正确 {Mark(ActivationService.Validate(mc, code))}");
+    Console.WriteLine($"  验签容错(小写/去横线) {Mark(ActivationService.Validate(mc, code.ToLowerInvariant().Replace("-", "")))}");
+    Console.WriteLine($"  错误码拒绝 {Mark(!ActivationService.Validate(mc, "AAAAA-BBBBB-CCCCC-DDDDD"))}");
+    Console.WriteLine($"  不同机器码拒绝 {Mark(!ActivationService.Validate(ActivationService.MachineCode("other-guid"), code))}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"  ✗ 激活码异常：{ex.Message}");
+}
+
+// ========== 试用防重置（商业风险4）==========
+Console.WriteLine("\n=== 15. 试用防重置 ===");
+try
+{
+    // 场景：注册表已有 10 天前的 TrialStart，DB 全新 → 应取最早（10 天前），剩余 5 天
+    var tmp3 = Path.Combine(Path.GetTempPath(), $"stock_trial_{Guid.NewGuid():N}.db");
+    var db3 = new DatabaseService(tmp3);
+    db3.Initialize();
+    var regStart = DateTime.Today.AddDays(-10).ToString("yyyy-MM-dd");
+    LicenseService.Init(db3, registryStart: regStart);
+    Console.WriteLine($"  注册表最早生效(剩余5天) {Mark(LicenseService.DaysLeft == 5)}");
+
+    // 场景：拨回系统日期（DB MaxDateSeen 被改成远古，注册表仍记录今天）→ 试用不重置
+    using (var c = db3.Open())
+    using (var cmd = c.CreateCommand())
+    {
+        cmd.CommandText = "UPDATE SysConfig SET ConfigValue='2026-08-01' WHERE ConfigKey='MaxDateSeen'";
+        cmd.ExecuteNonQuery();
+    }
+    // 用户把系统日期拨回 8 月 → 但注册表已记录今天（最大已见日期），单调不回拨
+    LicenseService.Init(db3, registryStart: regStart, registryMaxSeen: DateTime.Today.ToString("yyyy-MM-dd"));
+    Console.WriteLine($"  单调不回拨(剩余仍5天) {Mark(LicenseService.DaysLeft == 5)}");
+    Console.WriteLine($"  回拨后已用仍10天 {Mark(LicenseService.UsedDays == 10)}");
+    GC.Collect(); GC.WaitForPendingFinalizers();
+    foreach (var f in new[] { tmp3, tmp3 + "-wal", tmp3 + "-shm" })
+        if (File.Exists(f)) { try { File.Delete(f); } catch { } }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"  ✗ 防重置异常：{ex.Message}");
 }
 
 Console.WriteLine("\n=== 全部业务验证完成 ===");

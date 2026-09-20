@@ -119,6 +119,22 @@
                             Padding="16,9" HorizontalAlignment="Left"/>
                 </StackPanel>
             </Border>
+
+            <!-- 激活码 -->
+            <Border Grid.Row="2" Grid.Column="2" Background="White" CornerRadius="10" Padding="18,16" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="🔑 软件激活" FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="MachineCodeText" FontSize="12" Foreground="#334155" TextWrapping="Wrap"/>
+                    <TextBox x:Name="ActivationBox" FontSize="14" Padding="8,6" Margin="0,12,0,8"
+                             ToolTip="4 组 5 位，如 ABCDE-FGHIJ-KLMNO-PQRST"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="✅ 激活" Click="Activate_Click" Padding="20,8"
+                                Background="#10B981" Foreground="White" BorderThickness="0"/>
+                        <Button Content="📋 复制机器码" Click="CopyMachine_Click" Padding="16,8" Margin="8,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock x:Name="ActivationStatus" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
         </Grid>
     </ScrollViewer>
 </UserControl>

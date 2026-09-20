@@ -62,13 +62,64 @@ public class DatabaseService
             cmd.ExecuteNonQuery();
         }
 
-        // 记录当前版本
+        // 记录当前版本 + 增量升级（老库 v1 → v2）
+        RunUpgrade(conn);
+    }
+
+    /// <summary>
+    /// 版本升级：读 DBVersion 当前版本号，逐级执行 UpgradeScripts 直到 CurrentVersion。
+    /// 每级一个事务，失败整体回滚（不污染老库）。
+    /// </summary>
+    private void RunUpgrade(SqliteConnection conn)
+    {
+        int current;
         using (var cmd = conn.CreateCommand())
         {
+            cmd.CommandText = "SELECT COALESCE(MAX(VersionNo),0) FROM DBVersion";
+            current = Convert.ToInt32(cmd.ExecuteScalar());
+        }
+
+        // 新库：CreateAll 已建最新 schema，直接记录当前版本即可，不跑升级脚本
+        if (current == 0)
+        {
+            using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                INSERT OR IGNORE INTO DBVersion (VersionId, VersionNo, UpgradeSql)
-                VALUES ('VER000000001', 1, '初始建库');";
+                INSERT INTO DBVersion (VersionId, VersionNo, UpgradeSql)
+                VALUES (@id, @v, '初始建库(最新schema)')";
+            cmd.Parameters.AddWithValue("@id", $"VER{DatabaseSchema.CurrentVersion:000000000}");
+            cmd.Parameters.AddWithValue("@v", DatabaseSchema.CurrentVersion);
             cmd.ExecuteNonQuery();
+            return;
+        }
+
+        while (current < DatabaseSchema.CurrentVersion)
+        {
+            if (DatabaseSchema.UpgradeScripts.TryGetValue(current, out var sql))
+            {
+                using var tx = conn.BeginTransaction();
+                try
+                {
+                    using var cmd = conn.CreateCommand();
+                    cmd.Transaction = tx;
+                    cmd.CommandText = sql;
+                    cmd.ExecuteNonQuery();
+                    // 记录本次升级
+                    cmd.CommandText = @"
+                        INSERT INTO DBVersion (VersionId, VersionNo, UpgradeSql)
+                        VALUES (@id, @v, @sql)";
+                    cmd.Parameters.AddWithValue("@id", $"VER{current + 1:000000000}");
+                    cmd.Parameters.AddWithValue("@v", current + 1);
+                    cmd.Parameters.AddWithValue("@sql", sql);
+                    cmd.ExecuteNonQuery();
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+            current++;
         }
     }
 

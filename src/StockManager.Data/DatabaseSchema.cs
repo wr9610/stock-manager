@@ -7,7 +7,15 @@ namespace StockManager.Data;
 public static class DatabaseSchema
 {
     /// <summary>当前版本号</summary>
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
+
+    /// <summary>版本升级脚本：键=从该版本升到下一版</summary>
+    public static readonly IReadOnlyDictionary<int, string> UpgradeScripts =
+        new Dictionary<int, string>
+        {
+            // v1 → v2：商品表加移动加权成本列（P0-2 修复）
+            [1] = "ALTER TABLE Product ADD COLUMN CurrentCostCents INTEGER DEFAULT 0;",
+        };
 
     /// <summary>建表 + 初始数据（幂等：IF NOT EXISTS）</summary>
     public const string CreateAll = @"
@@ -33,6 +41,7 @@ CREATE TABLE IF NOT EXISTS Product (
   PackQty      REAL,
   PurchasePriceCents INTEGER,
   SalePriceCents     INTEGER,
+  CurrentCostCents   INTEGER DEFAULT 0,   -- 移动加权成本（v2 起持久化，销售成本唯一真相）
   LowStockQty  REAL DEFAULT 0,
   CurrentStock REAL DEFAULT 0,
   Remark       TEXT,

@@ -102,7 +102,7 @@ internal static class Program
                 "ReturnPage" => new[] { "FindBox", "Grid" },
                 "StockPage" => new[] { "Grid", "FromDate", "ToDate", "PeriodPanel" },
                 "ReportPage" => new[] { "RankGrid", "SalesText", "ProfitText" },
-                "SettingsPage" => new[] { "UserGrid", "AboutText", "BackupStatus" },
+                "SettingsPage" => new[] { "UserGrid", "AboutText", "BackupStatus", "MachineCodeText", "ActivationBox", "ActivationStatus" },
                 _ => Array.Empty<string>()
             };
             foreach (var n in mustHave)
