@@ -1,0 +1,124 @@
+<UserControl x:Class="StockManager.App.Pages.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧：数据备份 / 恢复 -->
+            <Border Grid.Row="0" Grid.Column="0" Background="White" CornerRadius="10" Padding="18,16">
+                <StackPanel>
+                    <TextBlock Text="📦 数据备份 / 恢复" FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock FontSize="12" Foreground="#64748B" TextWrapping="Wrap">
+                        备份会生成完整的一致性快照（VACUUM INTO），
+                        建议每天营业结束后备份一次。
+                    </TextBlock>
+                    <Button Content="💾 立即备份到文件夹..." Click="Backup_Click" Margin="0,14,0,0"
+                            Padding="16,9" HorizontalAlignment="Left"/>
+                    <Button Content="📂 从备份文件恢复..." Click="Restore_Click" Margin="0,8,0,0"
+                            Padding="16,9" HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="BackupStatus" FontSize="12" Foreground="#16A34A" Margin="0,12,0,0"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 右侧：用户管理 -->
+            <Border Grid.Row="0" Grid.Column="2" Background="White" CornerRadius="10" Padding="18,16">
+                <StackPanel>
+                    <TextBlock Text="👤 收银员管理" FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock FontSize="12" Foreground="#64748B">
+                        老板默认 admin/admin123，可在下方改密码。
+                    </TextBlock>
+                    <DataGrid x:Name="UserGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                              Height="160" Margin="0,10,0,0" Background="White" RowHeight="30"
+                              FontSize="12" BorderBrush="#E2E8F0" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="账号" Binding="{Binding UserName}" Width="90"/>
+                            <DataGridTextColumn Header="姓名" Binding="{Binding DisplayName}" Width="80"/>
+                            <DataGridTextColumn Header="角色" Binding="{Binding Role}" Width="60"/>
+                            <DataGridCheckBoxColumn Header="可改价" Binding="{Binding CanChangePrice}" Width="60"/>
+                            <DataGridTextColumn Header="状态" Binding="{Binding ActiveText}" Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="➕ 新增收银员" Click="AddUser_Click" Padding="14,7" FontSize="13"/>
+                        <Button Content="🔑 重置选中密码" Click="ResetPwd_Click" Padding="14,7" FontSize="13" Margin="8,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 左侧下：示例数据 -->
+            <Border Grid.Row="1" Grid.Column="0" Background="White" CornerRadius="10" Padding="18,16" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="🧪 示例数据（试用用）" FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock FontSize="12" Foreground="#64748B" TextWrapping="Wrap">
+                        一键导入 10 个示例商品 + 一笔进货 + 一笔销售，
+                        标注为「示例数据」，可一键全部清除。
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Content="✨ 导入示例数据" Click="ImportSample_Click" Padding="16,9"/>
+                        <Button Content="🧹 清除全部示例数据" Click="ClearSample_Click" Padding="16,9" Margin="10,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock x:Name="SampleStatus" FontSize="12" Foreground="#64748B" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 右侧下：打印机设置 -->
+            <Border Grid.Row="1" Grid.Column="2" Background="White" CornerRadius="10" Padding="18,16" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="🖨 小票打印机" FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock FontSize="12" Foreground="#64748B" TextWrapping="Wrap">
+                        支持串口（USB转串口）或网络热敏打印机，
+                        58mm 小票纸。结算后自动打印。
+                    </TextBlock>
+                    <ComboBox x:Name="PrintModeCombo" Margin="0,10,0,0" FontSize="13" Padding="4,4">
+                        <ComboBoxItem Content="不打印" Tag="0"/>
+                        <ComboBoxItem Content="串口打印机" Tag="1"/>
+                        <ComboBoxItem Content="网络打印机" Tag="2"/>
+                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="串口:" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBox x:Name="PortBox" Width="90" FontSize="13" Margin="6,0,0,0" Padding="4,4"/>
+                        <Button Content="刷新" Click="RefreshPorts_Click" Margin="6,0,0,0" Padding="10,4" FontSize="12"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="IP/主机:" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBox x:Name="HostBox" Width="130" FontSize="13" Margin="6,0,0,0" Padding="4,4"/>
+                        <TextBlock Text="端口:" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <TextBox x:Name="NetPortBox" Width="60" FontSize="13" Margin="6,0,0,0" Padding="4,4" Text="9100"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="店名:" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBox x:Name="ShopNameBox" Width="200" FontSize="13" Margin="6,0,0,0" Padding="4,4"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="💾 保存设置" Click="SavePrinter_Click" Padding="16,8"/>
+                        <Button Content="🧪 打印测试页" Click="TestPrinter_Click" Padding="16,8" Margin="8,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock x:Name="PrinterStatus" FontSize="12" Foreground="#64748B" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 关于 / 数据库信息 -->
+            <Border Grid.Row="2" Grid.Column="0" Background="White" CornerRadius="10" Padding="18,16" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="ℹ️ 关于" FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="AboutText" FontSize="12" Foreground="#334155" TextWrapping="Wrap"/>
+                    <Button Content="🔍 检查数据库完整性" Click="Integrity_Click" Margin="0,14,0,0"
+                            Padding="16,9" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

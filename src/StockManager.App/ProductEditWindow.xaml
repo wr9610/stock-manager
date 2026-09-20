@@ -1,0 +1,129 @@
+<Window x:Class="StockManager.App.ProductEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="编辑商品" Width="480" Height="640"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        FontFamily="Microsoft YaHei" Background="White">
+    <Grid Margin="24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="TitleText" Grid.Row="0" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
+
+        <StackPanel Grid.Row="1">
+            <TextBlock Text="商品名 *" FontSize="12" Foreground="#64748B"/>
+            <TextBox x:Name="NameBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="条码" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="BarcodeBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="货号" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="CodeBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="分类" FontSize="12" Foreground="#64748B"/>
+                    <ComboBox x:Name="CategoryCombo" FontSize="14" Padding="6,4" Margin="0,2,0,10"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="规格" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="SpecBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="基本单位（销售）" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="BaseUnitBox" FontSize="14" Padding="8,6" Margin="0,2,0,10" Text="个"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="包装单位（进货）" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="PackUnitBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="1箱=?个" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="PackQtyBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="进价（元）" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="PurchaseBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="售价（元）" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="PriceBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="低库存预警" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="LowBox" FontSize="14" Padding="8,6" Margin="0,2,0,10" Text="0"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="拼音简码（搜索用）" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="SearchCodeBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="附加条码（多个用逗号分隔）" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="ExtraBarcodeBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="备注" FontSize="12" Foreground="#64748B"/>
+            <TextBox x:Name="RemarkBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+
+            <CheckBox x:Name="SampleBox" Content="这是示例商品（一键清除示例数据时一起删除）"
+                      Margin="0,0,0,10"/>
+        </StackPanel>
+
+        <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#DC2626" FontSize="12"
+                   VerticalAlignment="Top" TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="取消" IsCancel="True" Padding="22,8" Margin="0,0,10,0"/>
+            <Button Content="保存" Click="Save_Click" Padding="30,8"
+                    Background="#3B82F6" Foreground="White" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>

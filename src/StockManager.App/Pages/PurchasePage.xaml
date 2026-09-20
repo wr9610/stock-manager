@@ -1,0 +1,90 @@
+<UserControl x:Class="StockManager.App.Pages.PurchasePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- 顶栏 -->
+            <RowDefinition Height="*"/>      <!-- 进货单明细 -->
+            <RowDefinition Height="Auto"/>   <!-- 底部：金额 + 提交 -->
+        </Grid.RowDefinitions>
+
+        <!-- 顶栏：供应商 + 商品选择 -->
+        <Border Grid.Row="0" Background="White" CornerRadius="10" Padding="16,12" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="240"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="供应商" FontSize="12" Foreground="#64748B"/>
+                    <ComboBox x:Name="SupplierCombo" FontSize="14" Padding="6,4"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="20,0,0,0">
+                    <TextBlock Text="扫码 / 搜商品（回车加入）" FontSize="12" Foreground="#64748B"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ScanBox" FontSize="16" Padding="8,6" KeyDown="ScanBox_KeyDown"/>
+                        <Button Grid.Column="1" Content="➕ 加入" Click="AddSelected_Click" Margin="8,0,0,0" Padding="16,7"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 进货明细表 -->
+        <DataGrid Grid.Row="1" x:Name="Grid" AutoGenerateColumns="False" IsReadOnly="True"
+                  HeadersVisibility="Column" Background="White" RowHeight="36" FontSize="13"
+                  SelectionMode="Single" SelectionUnit="FullRow"
+                  BorderBrush="#E2E8F0" RowBackground="White" AlternatingRowBackground="#F8FAFC">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="条码" Binding="{Binding Barcode}" Width="140"/>
+                <DataGridTextColumn Header="商品名" Binding="{Binding ProductName}" Width="*"/>
+                <DataGridTemplateColumn Header="进价(元)" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding EditPrice, UpdateSourceTrigger=PropertyChanged}" Width="70" Padding="2,3"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="数量" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding EditQty, UpdateSourceTrigger=PropertyChanged}" Width="70" Padding="2,3"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="70"/>
+                <DataGridTextColumn Header="小计" Binding="{Binding AmountText}" Width="100"/>
+                <DataGridTemplateColumn Header="操作" Width="60">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="删" Click="RemoveLine_Click" Padding="8,3" Tag="{Binding}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 底部：合计 + 备注 + 提交 -->
+        <Border Grid.Row="2" Background="White" CornerRadius="10" Padding="16,12" Margin="0,12,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TotalText" FontSize="20" FontWeight="Bold" Foreground="#EF4444" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Margin="12,0">
+                    <TextBlock Text="备注" FontSize="12" Foreground="#64748B"/>
+                    <TextBox x:Name="RemarkBox" Padding="6,4"/>
+                </StackPanel>
+                <Button Grid.Column="2" x:Name="SubmitBtn" Content="✅ 确认进货入库" FontSize="16" FontWeight="Bold"
+                        Background="#10B981" Foreground="White" Padding="30,16" BorderThickness="0"
+                        Click="Submit_Click" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

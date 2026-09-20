@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\StockManager.Core\StockManager.Core.csproj" />
+    <ProjectReference Include="..\..\src\StockManager.Data\StockManager.Data.csproj" />
+    <ProjectReference Include="..\..\src\StockManager.Print\StockManager.Print.csproj" />
+  </ItemGroup>
+</Project>

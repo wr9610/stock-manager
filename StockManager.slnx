@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StockManager.App/StockManager.App.csproj" />
+    <Project Path="src/StockManager.Core/StockManager.Core.csproj" />
+    <Project Path="src/StockManager.Data/StockManager.Data.csproj" />
+    <Project Path="src/StockManager.Print/StockManager.Print.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StockManager.Core.Tests/StockManager.Core.Tests.csproj" />
+    <Project Path="tests/StockManager.UiSmoke/StockManager.UiSmoke.csproj" />
+  </Folder>
+</Solution>

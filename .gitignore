@@ -1,0 +1,19 @@
+# 编译产物
+bin/
+obj/
+publish/
+
+# 运行时数据（含店铺数据，绝不入库）
+data/
+
+# 发布包（成品 zip 太大，不上库）
+发布包/*.zip
+进销存系统_单机版_v1.0_绿色版/
+
+# VS / Rider / 系统
+.vs/
+.idea/
+*.user
+*.suo
+Thumbs.db
+.DS_Store

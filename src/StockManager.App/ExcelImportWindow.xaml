@@ -1,0 +1,58 @@
+<Window x:Class="StockManager.App.ExcelImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Excel 批量导入商品" Width="860" Height="560"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Microsoft YaHei" Background="White">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部：选文件 + 说明 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock FontSize="13" Foreground="#64748B" TextWrapping="Wrap">
+                支持列头：条码 / 商品名 / 规格 / 单位 / 进价 / 售价 / 库存 / 低库存预警
+                （进价、售价按「元」，条码重复自动跳过）
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Content="📂 选择 Excel 文件" Click="ChooseFile_Click" Padding="16,8" FontSize="13"/>
+                <Button Content="💾 下载模板" Click="DownloadTemplate_Click" Padding="16,8" FontSize="13" Margin="10,0,0,0"/>
+                <TextBlock x:Name="FileInfoText" FontSize="13" Foreground="#0F766E" VerticalAlignment="Center" Margin="16,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- 预览表格 -->
+        <DataGrid Grid.Row="1" x:Name="PreviewGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                  HeadersVisibility="Column" Background="White" RowHeight="30" FontSize="12"
+                  BorderBrush="#E2E8F0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="条码" Binding="{Binding Barcode}" Width="140"/>
+                <DataGridTextColumn Header="商品名" Binding="{Binding ProductName}" Width="*"/>
+                <DataGridTextColumn Header="规格" Binding="{Binding Spec}" Width="80"/>
+                <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="60"/>
+                <DataGridTextColumn Header="进价(元)" Binding="{Binding PurchaseText}" Width="80"/>
+                <DataGridTextColumn Header="售价(元)" Binding="{Binding SaleText}" Width="80"/>
+                <DataGridTextColumn Header="库存" Binding="{Binding Stock}" Width="70"/>
+                <DataGridTemplateColumn Header="状态" Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding ShowError}" Foreground="{Binding ErrorBrush}" TextWrapping="Wrap"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 底部：统计 + 导入 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <TextBlock x:Name="SummaryText" FontSize="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,20,0"/>
+            <Button Content="取消" IsCancel="True" Padding="22,8" Margin="0,0,10,0"/>
+            <Button x:Name="ImportBtn" Content="✅ 导入选中商品" Padding="30,8"
+                    Background="#3B82F6" Foreground="White" BorderThickness="0"
+                    IsEnabled="False" Click="Import_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

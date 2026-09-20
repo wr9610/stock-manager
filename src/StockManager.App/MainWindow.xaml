@@ -1,0 +1,81 @@
+<Window x:Class="StockManager.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="进销存系统"
+        Width="1200" Height="760"
+        WindowStartupLocation="CenterScreen"
+        Background="#F2F4F8"
+        FontFamily="Microsoft YaHei">
+    <Window.Resources>
+        <Style x:Key="NavRadio" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#B8C4DC"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="18,12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2A3D6B"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#223457"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧导航 -->
+        <Border Grid.Column="0" Background="#1B2A4A">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="16,18" Background="#14203A">
+                    <StackPanel>
+                        <TextBlock Text="进销存" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="StockManager" FontSize="11" Foreground="#7A8BB0"/>
+                    </StackPanel>
+                </Border>
+                <StackPanel>
+                    <RadioButton GroupName="Nav" Content="🏪  销售收银" Tag="sale"
+                                 IsChecked="True" Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                    <RadioButton GroupName="Nav" Content="📦  商品管理" Tag="product"
+                                 Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                    <RadioButton GroupName="Nav" Content="🚚  进货管理" Tag="purchase"
+                                 Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                    <RadioButton GroupName="Nav" Content="↩  销售退货" Tag="return"
+                                 Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                    <RadioButton GroupName="Nav" Content="📊  库存查询" Tag="stock"
+                                 Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                    <RadioButton GroupName="Nav" Content="📈  报表中心" Tag="report"
+                                 Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                    <RadioButton GroupName="Nav" Content="⚙  系统设置" Tag="settings"
+                                 Style="{StaticResource NavRadio}" Checked="OnNav"/>
+                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Padding="16,12">
+                    <StackPanel>
+                        <TextBlock x:Name="UserInfoText" Text="admin（老板）" Foreground="#7A8BB0" FontSize="12"/>
+                        <Button Content="退出" Click="Logout_Click" Background="Transparent"
+                                Foreground="#F08080" BorderThickness="0" FontSize="12" HorizontalAlignment="Left" Cursor="Hand"/>
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+        </Border>
+
+        <!-- 内容区 -->
+        <ContentControl Grid.Column="1" x:Name="ContentHost" Margin="20"/>
+    </Grid>
+</Window>

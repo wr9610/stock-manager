@@ -1,0 +1,59 @@
+<UserControl x:Class="StockManager.App.Pages.ProductPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶栏：搜索 + 按钮 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <TextBox x:Name="SearchBox" Width="300" FontSize="14" Padding="8,6"
+                     KeyDown="SearchBox_KeyDown"/>
+            <Button Content="🔍 查询" Click="Search_Click" Margin="8,0,0,0" Padding="14,7"/>
+            <Button Content="➕ 新增商品" Click="Add_Click" Margin="20,0,0,0"
+                    Background="#3B82F6" Foreground="White" Padding="14,7" BorderThickness="0"/>
+            <Button Content="✏️ 编辑选中" Click="Edit_Click" Margin="8,0,0,0" Padding="14,7"/>
+            <Button Content="🗑 停用/启用" Click="ToggleActive_Click" Margin="8,0,0,0" Padding="14,7"/>
+            <Button Content="📥 导入Excel" Click="ImportExcel_Click" Margin="8,0,0,0" Padding="14,7"/>
+            <CheckBox x:Name="ShowInactive" Content="显示已停用" VerticalAlignment="Center" Margin="24,0,0,0"
+                      Checked="ShowInactive_Changed" Unchecked="ShowInactive_Changed"/>
+        </StackPanel>
+
+        <!-- 附加条码展示行 -->
+        <TextBlock x:Name="ExtraBarcodeText" Grid.Row="1" FontSize="12" Foreground="#0F766E" Margin="0,6,0,6"/>
+
+        <!-- 商品列表 -->
+        <DataGrid Grid.Row="2" x:Name="Grid" AutoGenerateColumns="False" IsReadOnly="True"
+                  HeadersVisibility="Column" Background="White" RowHeight="36" FontSize="13"
+                  SelectionMode="Single" SelectionUnit="FullRow"
+                  BorderBrush="#E2E8F0" RowBackground="White" AlternatingRowBackground="#F8FAFC"
+                  SelectionChanged="Grid_SelectionChanged"
+                  MouseDoubleClick="Grid_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="条码" Binding="{Binding Barcode}" Width="140"/>
+                <DataGridTextColumn Header="商品名" Binding="{Binding ProductName}" Width="*"/>
+                <DataGridTextColumn Header="规格" Binding="{Binding Spec}" Width="90"/>
+                <DataGridTextColumn Header="进价" Binding="{Binding PurchasePriceText}" Width="72"/>
+                <DataGridTextColumn Header="售价" Binding="{Binding SalePriceText}" Width="72"/>
+                <DataGridTextColumn Header="单位" Binding="{Binding UnitText}" Width="76"/>
+                <DataGridTextColumn Header="库存" Binding="{Binding CurrentStock}" Width="60"/>
+                <DataGridTextColumn Header="预警" Binding="{Binding LowStockQty}" Width="56"/>
+                <DataGridTemplateColumn Header="状态" Width="64">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 底部：库存合计 / 低库存提醒 -->
+        <TextBlock x:Name="SummaryText" Grid.Row="3" Margin="0,8,0,0" FontSize="12"
+                   Foreground="#64748B"/>
+    </Grid>
+</UserControl>

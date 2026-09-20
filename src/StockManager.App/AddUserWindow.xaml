@@ -1,0 +1,39 @@
+<Window x:Class="StockManager.App.AddUserWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="新增收银员" Width="380" Height="400"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        FontFamily="Microsoft YaHei" Background="White">
+    <Grid Margin="24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="登录账号 *" FontSize="12" Foreground="#64748B"/>
+            <TextBox x:Name="UserNameBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+
+            <TextBlock Text="初始密码 *" FontSize="12" Foreground="#64748B"/>
+            <TextBox x:Name="PwdBox" FontSize="14" Padding="8,6" Margin="0,2,0,10" Text="123456"/>
+
+            <TextBlock Text="显示姓名" FontSize="12" Foreground="#64748B"/>
+            <TextBox x:Name="DisplayBox" FontSize="14" Padding="8,6" Margin="0,2,0,10"/>
+
+            <TextBlock Text="角色" FontSize="12" Foreground="#64748B"/>
+            <ComboBox x:Name="RoleCombo" FontSize="14" Padding="6,4" Margin="0,2,0,10">
+                <ComboBoxItem Content="店员" IsSelected="True"/>
+                <ComboBoxItem Content="老板"/>
+            </ComboBox>
+
+            <CheckBox x:Name="PriceBox" Content="收银时允许临时改价 / 抹零" IsChecked="False"/>
+            <TextBlock x:Name="ErrorText" Foreground="#DC2626" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="取消" IsCancel="True" Padding="22,8" Margin="0,0,10,0"/>
+            <Button Content="保存" Click="Save_Click" Padding="30,8"
+                    Background="#3B82F6" Foreground="White" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>
